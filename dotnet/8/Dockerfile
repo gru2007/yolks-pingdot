@@ -4,10 +4,11 @@ LABEL       author="Torsten Widmann" maintainer="info@goover.de"
 
 ENV         DEBIAN_FRONTEND noninteractive
 
-RUN         apt update -y \
+RUN         dpkg --add-architecture i386 \
+			&& apt update -y \
             && apt upgrade -y \
             && apt install -y apt-transport-https iputils-ping wget curl iproute2 libgdiplus tini \
-			&& apt install -y curl tzdata locales iproute2 gettext-base ca-certificates numactl libssl-dev libsdl2-2.0-0 libstdc++6 libnss-wrapper libtbbmalloc2 tini \
+			&& apt install -y curl tzdata locales gettext-base ca-certificates numactl libssl-dev lib32gcc-s1 libsdl2-2.0-0 libsdl2-2.0-0:i386 libstdc++6 libstdc++6:i386 lib32stdc++6 libnss-wrapper libnss-wrapper:i386 libtbb2 libtbb2:i386 tini
             && wget https://dot.net/v1/dotnet-install.sh \
             && D_V="$(curl -sSL https://dotnet.microsoft.com/en-us/download/dotnet/8.0 | grep -i  '<h3 id="sdk-8.*">SDK 8.*.*</h3>'  | head -1 | awk -F\" '{print $3}' | awk '{print $2;}' | sed 's/<\/h3>//g')" \ 
             && chmod +x dotnet-install.sh \
