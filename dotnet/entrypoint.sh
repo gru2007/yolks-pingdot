@@ -32,7 +32,7 @@ NC='\033[0m' # No Color
 ## === DEFINE FUNCTIONS ===
 #
 # Runs SteamCMD with specified variables and performs error handling.
-function RunSteamCMD { #[Input: int server=0 mod=1 optional_mod=2; int id]
+function RunSteamCMD { #[Input: int server=0 mod=1 optional_mod=2; int id; string modname]
     # Clear previous SteamCMD log
     if [[ -f "${STEAMCMD_LOG}" ]]; then
         rm -f "${STEAMCMD_LOG:?}"
@@ -111,9 +111,9 @@ function RunSteamCMD { #[Input: int server=0 mod=1 optional_mod=2; int id]
                 echo -e "\n${GREEN}[UPDATE]: Game server is up to date!${NC}"
             else # Mod
                 # Move the downloaded mod to the root directory, and replace existing mod if needed
-                mkdir -p ./RusLand/clients/StormOfGalaxy/@$2
-                rm -rf ./RusLand/clients/StormOfGalaxy/@$2/*
-                mv -f ${WORKSHOP_DIR}/content/$GAME_ID/$2/* ./RusLand/clients/StormOfGalaxy/@$2
+                mkdir -p ./RusLand/clients/StormOfGalaxy/@$3
+                rm -rf ./RusLand/clients/StormOfGalaxy/@$3/*
+                mv -f ${WORKSHOP_DIR}/content/$GAME_ID/$2/* ./RusLand/clients/StormOfGalaxy/@$3
                 rm -d ${WORKSHOP_DIR}/content/$GAME_ID/$2
                 echo -e "${GREEN}[UPDATE]: Mod download/update successful!${NC}"
             fi
@@ -235,7 +235,7 @@ if [[ ${UPDATE_SERVER} == 1 ]]; then
                     rm -f ${WORKSHOP_DIR}/appworkshop_$GAME_ID.acf
                     
                     echo -e "\tAttempting mod update/download via SteamCMD...\n"
-                    RunSteamCMD $modType $modID
+                    RunSteamCMD $modType $modID $modName
                 fi
             fi
         done
