@@ -200,15 +200,20 @@ if [[ ${UPDATE_SERVER} == 1 ]]; then
         for modID in $(echo $allMods | sed -e 's/@//g')
         do
             if [[ $modID =~ ^[0-9]+$ ]]; then # Only check mods that are in ID-form
+				# Get the mod's name from the Workshop page as well
+				modName=$(curl -sL https://steamcommunity.com/sharedfiles/filedetails/changelog/$modID | grep 'workshopItemTitle' | cut -d'>' -f2 | cut -d'<' -f1)
+				if [[ -z $modName ]]; then # Set default name if unavailable
+					modName="[NAME UNAVAILABLE]"
+				fi
                 # If a mod is defined in OPTIONALMODS, and is not defined in CLIENT_MODS or SERVERMODS, then treat as an optional mod
                 # Optional mods are given a different directory which is checked to see if a new update is available. This is to ensure
                 # if an optional mod is switched to be a standard client-side mod, this script will redownload the mod
                 if [[ "${OPTIONALMODS}" == *"@${modID};"* ]] && [[ "${CLIENT_MODS}" != *"@${modID};"* ]] && [[ "${SERVERMODS}" != *"@${modID};"* ]]; then
                     modType=2
-                    modDir=@${modID}_optional
+                    modDir=./RusLand/clients/StormOfGalaxy/@${modID}_optional
                 else
                     modType=1
-                    modDir=@${modID}
+                    modDir=./RusLand/clients/StormOfGalaxy/@${modName}
                 fi
 
                 # Get mod's latest update in epoch time from its Steam Workshop changelog page
@@ -216,11 +221,6 @@ if [[ ${UPDATE_SERVER} == 1 ]]; then
 
                 # If the update time is valid and newer than the local directory's creation date, or the mod hasn't been downloaded yet, download the mod
                 if [[ ! -d $modDir ]] || [[ ( -n $latestUpdate ) && ( $latestUpdate =~ ^[0-9]+$ ) && ( $latestUpdate > $(find $modDir | head -1 | xargs stat -c%Y) ) ]]; then
-                    # Get the mod's name from the Workshop page as well
-                    modName=$(curl -sL https://steamcommunity.com/sharedfiles/filedetails/changelog/$modID | grep 'workshopItemTitle' | cut -d'>' -f2 | cut -d'<' -f1)
-                    if [[ -z $modName ]]; then # Set default name if unavailable
-                        modName="[NAME UNAVAILABLE]"
-                    fi
                     if [[ ! -d $modDir ]]; then
                         echo -e "\n${GREEN}[UPDATE]:${NC} Downloading new Mod: \"${CYAN}${modName}${NC}\" (${CYAN}${modID}${NC})"
                     else
