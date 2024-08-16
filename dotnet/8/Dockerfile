@@ -15,13 +15,28 @@ RUN         dpkg --add-architecture i386 \
 			&& ./dotnet-install.sh -i /usr/share -v $D_V \
             && ln -s /usr/share/dotnet /usr/bin/dotnet
 
+## Configure locale
+RUN         update-locale lang=en_US.UTF-8 \
+            && dpkg-reconfigure --frontend noninteractive locales
+
+## Prepare NSS Wrapper for the entrypoint as a workaround for Arma 3 requiring a valid UID
+ENV         NSS_WRAPPER_PASSWD=/tmp/passwd NSS_WRAPPER_GROUP=/tmp/group
+RUN         touch ${NSS_WRAPPER_PASSWD} ${NSS_WRAPPER_GROUP} \
+            && chgrp 0 ${NSS_WRAPPER_PASSWD} ${NSS_WRAPPER_GROUP} \
+            && chmod g+rw ${NSS_WRAPPER_PASSWD} ${NSS_WRAPPER_GROUP}
+ADD         passwd.template /passwd.template
+
+## Setup user and working directory
+RUN         useradd -m -d /home/container -s /bin/bash container
 USER        container
 ENV         USER=container HOME=/home/container
 WORKDIR     /home/container
 
-STOPSIGNAL SIGINT
-
-COPY        --chown=container:container ./../entrypoint.sh /entrypoint.sh
+## Copy over entrypoint.sh and set permissions
+COPY        --chown=container:container ./entrypoint.sh /entrypoint.sh
 RUN         chmod +x /entrypoint.sh
-ENTRYPOINT    ["/usr/bin/tini", "-g", "--"]
+
+## Start with Tini to pass future stop signals correctly
+STOPSIGNAL  SIGINT
+ENTRYPOINT  ["/usr/bin/tini", "-g", "--"]
 CMD         ["/entrypoint.sh"]
