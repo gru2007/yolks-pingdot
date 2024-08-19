@@ -240,32 +240,6 @@ if [[ ${UPDATE_SERVER} == 1 ]]; then
             fi
         done
 
-        # Check over key files for unconfigured optional mods' .bikey files
-        for keyFile in $(find ./keys -name "*.bikey" -type f); do
-            keyFileName=$(basename ${keyFile})
-
-            # If the key file is using the optional mod file name
-            if [[ "${keyFileName}" == "optional_"* ]]; then
-                modID=$(echo "${keyFileName}" | cut -d _ -f 2)
-
-                # If mod is not in optional mods, delete it
-                # If a mod is configured in CLIENT_MODS or SERVERMODS, we should still delete this file
-                # as a new file will have been copied that does not follow the naming scheme
-                if [[ "${OPTIONALMODS}" != *"@${modID};"* ]]; then
-
-                    # We only need to let the user know the key file is being deleted if this mod is no longer configured at all.
-                    # If CLIENT_MODS contains the mod ID, we'd just confuse the user by telling them we are deleting the optional .bikey file
-                    if [[ "${CLIENT_MODS}" != *"@${modID};"* ]]; then
-                        echo -e "\tKey file and directory for unconfigured optional mod ${CYAN}${modID}${NC} is being deleted..."
-                    fi
-
-                    # Delete the optional mod .bikey file and directory
-                    rm ${keyFile}
-                    rmdir ./@${modID}_optional 2> /dev/null
-                fi
-            fi
-        done;
-
         echo -e "${GREEN}[UPDATE]:${NC} Steam Workshop mod update check ${GREEN}complete${NC}!"
     fi
 fi
